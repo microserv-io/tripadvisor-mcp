@@ -23,7 +23,7 @@ The list of tools is configurable, so you can choose which tools you want to mak
 
 1. Get your Tripadvisor Content API key from the [Tripadvisor Developer Portal](https://developer.tripadvisor.com/).
 
-2. Configure the environment variables, either through a `.env` file or system environment variables:
+2. Configure the environment variables for your Tripadvisor Content API, either through a `.env` file or system environment variables:
 
 ```env
 # Required: Tripadvisor Content API configuration
@@ -36,12 +36,13 @@ TRIPADVISOR_API_KEY=your_api_key_here
 {
   "mcpServers": {
     "tripadvisor": {
-      "command": "python",
+      "command": "uv",
       "args": [
-        "-m",
-        "tripadvisor_mcp.main"
+        "--directory",
+        "<full path to tripadvisor-mcp directory>",
+        "run",
+        "src/tripadvisor_mcp/main.py"
       ],
-      "cwd": "<full path to tripadvisor-mcp directory>",
       "env": {
         "TRIPADVISOR_API_KEY": "your_api_key_here"
       }
@@ -50,7 +51,7 @@ TRIPADVISOR_API_KEY=your_api_key_here
 }
 ```
 
-> Note: if you see `Error: spawn python ENOENT` in Claude Desktop, you may need to specify the full path to `python`.
+> Note: if you see `Error: spawn uv ENOENT` in Claude Desktop, you may need to specify the full path to `uv` or set the environment variable `NO_UV=1` in the configuration.
 
 ## Docker Usage
 
@@ -114,13 +115,19 @@ This configuration passes the environment variables from Claude Desktop to the D
 
 Contributions are welcome! Please open an issue or submit a pull request if you have any suggestions or improvements.
 
-This project uses standard Python tooling. To set up a development environment:
+This project uses [`uv`](https://github.com/astral-sh/uv) to manage dependencies. Install `uv` following the instructions for your platform:
 
 ```bash
-python -m venv .venv
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+You can then create a virtual environment and install the dependencies with:
+
+```bash
+uv venv
 source .venv/bin/activate  # On Unix/macOS
 .venv\Scripts\activate     # On Windows
-pip install -e ".[dev]"
+uv pip install -e .
 ```
 
 ## Project Structure
@@ -149,7 +156,7 @@ Run the tests with pytest:
 
 ```bash
 # Install development dependencies
-pip install -e ".[dev]"
+uv pip install -e ".[dev]"
 
 # Run the tests
 pytest
