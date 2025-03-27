@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 import sys
-from dotenv import load_dotenv
+import dotenv
 from tripadvisor_mcp.server import mcp, config
 
 def setup_environment():
-    if load_dotenv():
+    if dotenv.load_dotenv():
         print("Loaded environment variables from .env file")
     else:
         print("No .env file found or could not load it - using environment variables")

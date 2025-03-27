@@ -2,15 +2,14 @@
 
 import os
 import json
-import sys
 from typing import Any, Dict, List, Optional, Union
 from dataclasses import dataclass
 import httpx
 
-from dotenv import load_dotenv
+import dotenv
 from mcp.server.fastmcp import FastMCP
 
-load_dotenv()
+dotenv.load_dotenv()
 mcp = FastMCP("Tripadvisor Content API MCP")
 
 @dataclass
@@ -29,12 +28,15 @@ async def make_api_request(endpoint: str, params: Dict[str, Any] = None) -> Dict
     
     url = f"{config.base_url}/{endpoint}"
     headers = {
-        "accept": "application/json",
-        "x-api-key": config.api_key
+        "accept": "application/json"
     }
+
+    if params is None:
+        params = {}
+    params["key"] = config.api_key
     
     async with httpx.AsyncClient() as client:
-        response = await client.get(url, headers=headers, params=params or {})
+        response = await client.get(url, headers=headers, params=params)
         response.raise_for_status()
         return response.json()
 
@@ -102,113 +104,66 @@ async def search_nearby_locations(
 
 @mcp.tool(description="Get detailed information about a specific location")
 async def get_location_details(
-    location_id: str,
+    locationId: Union[str, int],
     language: str = "en",
 ) -> Dict[str, Any]:
     """
     Get detailed information about a specific location (hotel, restaurant, or attraction).
     
     Parameters:
-    - location_id: Tripadvisor location ID
+    - locationId: Tripadvisor location ID (can be string or integer)
     - language: Language code (default: 'en')
     """
     params = {
         "language": language,
     }
     
-    return await make_api_request(f"location/{location_id}/details", params)
+    # Convert locationId to string to ensure compatibility
+    location_id_str = str(locationId)
+    
+    return await make_api_request(f"location/{location_id_str}/details", params)
 
 @mcp.tool(description="Get reviews for a specific location")
 async def get_location_reviews(
-    location_id: str,
+    locationId: Union[str, int],
     language: str = "en",
 ) -> Dict[str, Any]:
     """
     Get the most recent reviews for a specific location.
     
     Parameters:
-    - location_id: Tripadvisor location ID
+    - locationId: Tripadvisor location ID (can be string or integer)
     - language: Language code (default: 'en')
     """
     params = {
         "language": language,
     }
     
-    return await make_api_request(f"location/{location_id}/reviews", params)
+    # Convert locationId to string to ensure compatibility
+    location_id_str = str(locationId)
+    
+    return await make_api_request(f"location/{location_id_str}/reviews", params)
 
 @mcp.tool(description="Get photos for a specific location")
 async def get_location_photos(
-    location_id: str,
+    locationId: Union[str, int],
     language: str = "en",
 ) -> Dict[str, Any]:
     """
     Get high-quality photos for a specific location.
     
     Parameters:
-    - location_id: Tripadvisor location ID
+    - locationId: Tripadvisor location ID (can be string or integer)
     - language: Language code (default: 'en')
     """
     params = {
         "language": language,
     }
     
-    return await make_api_request(f"location/{location_id}/photos", params)
-
-@mcp.resource("tripadvisor://search-results/{query}")
-async def search_results_resource(query: str) -> str:
-    """
-    Resource that returns search results for a given query.
+    # Convert locationId to string to ensure compatibility
+    location_id_str = str(locationId)
     
-    Parameters:
-    - query: The search query
-    """
-    try:
-        results = await search_locations(searchQuery=query)
-        return json.dumps(results, indent=2)
-    except Exception as e:
-        return f"Error retrieving search results: {str(e)}"
-
-@mcp.resource("tripadvisor://location/{location_id}")
-async def location_details_resource(location_id: str) -> str:
-    """
-    Resource that returns details for a specific location.
-    
-    Parameters:
-    - location_id: Tripadvisor location ID
-    """
-    try:
-        details = await get_location_details(location_id=location_id)
-        return json.dumps(details, indent=2)
-    except Exception as e:
-        return f"Error retrieving location details: {str(e)}"
-
-@mcp.resource("tripadvisor://reviews/{location_id}")
-async def location_reviews_resource(location_id: str) -> str:
-    """
-    Resource that returns reviews for a specific location.
-    
-    Parameters:
-    - location_id: Tripadvisor location ID
-    """
-    try:
-        reviews = await get_location_reviews(location_id=location_id)
-        return json.dumps(reviews, indent=2)
-    except Exception as e:
-        return f"Error retrieving location reviews: {str(e)}"
-
-@mcp.resource("tripadvisor://photos/{location_id}")
-async def location_photos_resource(location_id: str) -> str:
-    """
-    Resource that returns photos for a specific location.
-    
-    Parameters:
-    - location_id: Tripadvisor location ID
-    """
-    try:
-        photos = await get_location_photos(location_id=location_id)
-        return json.dumps(photos, indent=2)
-    except Exception as e:
-        return f"Error retrieving location photos: {str(e)}"
+    return await make_api_request(f"location/{location_id_str}/photos", params)
 
 if __name__ == "__main__":
     print(f"Starting Tripadvisor MCP Server...")
