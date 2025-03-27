@@ -2,14 +2,15 @@
 
 import os
 import json
+import sys
 from typing import Any, Dict, List, Optional, Union
 from dataclasses import dataclass
 import httpx
 
-import dotenv
+from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
 
-dotenv.load_dotenv()
+load_dotenv()
 mcp = FastMCP("Tripadvisor Content API MCP")
 
 @dataclass
