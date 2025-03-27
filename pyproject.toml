@@ -1,0 +1,46 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tripadvisor-mcp"
+version = "0.1.0"
+description = "Model Context Protocol integration for Tripadvisor Content API"
+authors = [
+    {name = "Pavel Shklovsky", email = "pavel.shklovsky@example.com"}
+]
+requires-python = ">=3.8"
+readme = "README.md"
+license = {text = "MIT"}
+dependencies = [
+    "mcp>=0.1.0",
+    "httpx>=0.24.0",
+    "python-dotenv>=1.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "black>=23.0.0",
+    "isort>=5.10.0",
+    "ruff>=0.0.256",
+]
+
+[project.scripts]
+tripadvisor-mcp = "tripadvisor_mcp.main:run_server"
+
+[tool.setuptools]
+packages = ["tripadvisor_mcp"]
+package-dir = {"" = "src"}
+
+[tool.black]
+line-length = 100
+target-version = ["py38"]
+
+[tool.isort]
+profile = "black"
+line_length = 100
+
+[tool.ruff]
+line-length = 100
+target-version = "py38"
