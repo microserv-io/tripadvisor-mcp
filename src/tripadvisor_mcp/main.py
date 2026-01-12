@@ -1,28 +1,8 @@
 #!/usr/bin/env python
 import sys
+import os
 import argparse
 import dotenv
-from tripadvisor_mcp.server import mcp, config
-
-
-def setup_environment():
-    if dotenv.load_dotenv():
-        print("Loaded environment variables from .env file")
-    else:
-        print("No .env file found or could not load it - using environment variables")
-
-    if not config.api_key:
-        print("ERROR: TRIPADVISOR_API_KEY environment variable is not set")
-        print("Please set it to your Tripadvisor Content API key")
-        return False
-
-    print("Tripadvisor Content API configuration:")
-    print(
-        f"  API Key: {'*' * (len(config.api_key) - 8) + config.api_key[-8:] if config.api_key else 'Not set'}"
-    )
-    print(f"  Base URL: {config.base_url}")
-
-    return True
 
 
 def parse_args():
@@ -42,9 +22,39 @@ def parse_args():
     return parser.parse_args()
 
 
+def setup_environment():
+    if dotenv.load_dotenv():
+        print("Loaded environment variables from .env file")
+    else:
+        print("No .env file found or could not load it - using environment variables")
+
+    api_key = os.environ.get("TRIPADVISOR_API_KEY", "")
+    if not api_key:
+        print("ERROR: TRIPADVISOR_API_KEY environment variable is not set")
+        print("Please set it to your Tripadvisor Content API key")
+        return False
+
+    print("Tripadvisor Content API configuration:")
+    print(
+        f"  API Key: {'*' * (len(api_key) - 8) + api_key[-8:] if api_key else 'Not set'}"
+    )
+    print(f"  Base URL: https://api.content.tripadvisor.com/api/v1")
+
+    return True
+
+
 def run_server():
     """Main entry point for the Tripadvisor MCP Server"""
     args = parse_args()
+
+    # Set FastMCP settings via environment variables BEFORE importing server
+    # This ensures the FastMCP instance uses these settings
+    if args.port:
+        os.environ["FASTMCP_PORT"] = str(args.port)
+        os.environ["FASTMCP_HOST"] = args.host
+
+    # Now import the server (which creates the FastMCP instance)
+    from tripadvisor_mcp.server import mcp
 
     # Setup environment
     if not setup_environment():
@@ -54,7 +64,7 @@ def run_server():
 
     if args.port:
         print(f"Running server in SSE mode on {args.host}:{args.port}...")
-        mcp.run(transport="sse", host=args.host, port=args.port)
+        mcp.run(transport="sse")
     else:
         print("Running server in stdio mode...")
         mcp.run(transport="stdio")
