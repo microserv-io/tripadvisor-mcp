@@ -25,7 +25,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 FROM python:3.12-slim-bookworm
 
 WORKDIR /app
- 
+
 COPY --from=uv /root/.local /root/.local
 COPY --from=uv --chown=app:app /app/.venv /app/.venv
 
@@ -35,8 +35,17 @@ ENV PATH="/app/.venv/bin:$PATH"
 # Set environment variables for Tripadvisor MCP Server
 ENV PYTHONUNBUFFERED=1
 
+# Default port for SSE transport (can be overridden)
+ENV PORT=8932
+
+# Expose the SSE port
+EXPOSE 8932
+
 # when running the container, add TRIPADVISOR_API_KEY environment variable
+# Default: run in SSE mode on port 8932
+# Override with: docker run ... tripadvisor-mcp (for stdio mode)
 ENTRYPOINT ["tripadvisor-mcp"]
+CMD ["--port", "8932"]
 
 # Label the image
 LABEL maintainer="Pavel Shklovsky" \

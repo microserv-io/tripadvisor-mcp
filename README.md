@@ -53,6 +53,37 @@ TRIPADVISOR_API_KEY=your_api_key_here
 
 > Note: if you see `Error: spawn uv ENOENT` in Claude Desktop, you may need to specify the full path to `uv` or set the environment variable `NO_UV=1` in the configuration.
 
+## Standalone Server (SSE Transport)
+
+For deployment as a standalone HTTP service (similar to Playwright MCP), run with the `--port` flag:
+
+```bash
+# Run locally with SSE transport
+tripadvisor-mcp --port 8932
+
+# Or with uvx
+uvx tripadvisor-mcp --port 8932
+```
+
+Then configure your MCP client to connect via SSE:
+
+```json
+{
+  "mcpServers": {
+    "tripadvisor": {
+      "url": "http://localhost:8932/sse"
+    }
+  }
+}
+```
+
+### Command Line Options
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `--port` | None | Port for SSE transport. If not specified, uses stdio. |
+| `--host` | `0.0.0.0` | Host to bind to for SSE transport. |
+
 ## Docker Usage
 
 This project includes Docker support for easy deployment and isolation.
@@ -69,11 +100,30 @@ docker build -t tripadvisor-mcp-server .
 
 You can run the server using Docker in several ways:
 
-#### Using docker run directly:
+#### SSE Mode (default, recommended for standalone deployment):
+
+```bash
+docker run -d --rm \
+  -e TRIPADVISOR_API_KEY=your_api_key_here \
+  -p 8932:8932 \
+  tripadvisor-mcp-server
+```
+
+#### STDIO Mode (for direct MCP client integration):
 
 ```bash
 docker run -it --rm \
   -e TRIPADVISOR_API_KEY=your_api_key_here \
+  tripadvisor-mcp-server --port 0
+# Note: --port 0 or no args after image name runs in stdio mode
+```
+
+#### Using docker run directly (stdio):
+
+```bash
+docker run -it --rm \
+  -e TRIPADVISOR_API_KEY=your_api_key_here \
+  --entrypoint tripadvisor-mcp \
   tripadvisor-mcp-server
 ```
 
